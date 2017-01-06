@@ -1,6 +1,11 @@
 #include "rcstuff.h"
 
+#ifdef PUTTYR4S
+#define APPNAME "PuTTYR4S";
+#else
 #define APPNAME "PuTTY"
+#endif // PUTTYR4S
+
 #define APPDESC "SSH, Telnet and Rlogin client"
 
 #include "win_res.rc2"
