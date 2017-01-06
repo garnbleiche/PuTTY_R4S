@@ -1,5 +1,8 @@
-﻿# PuTTY R4S
+# PuTTY R4S
 A modified version of PuTTY for integration into Remote4Support
+
+## New command-line arguments
+* **hwndparent**: the handle of the parent window
 
 Links
 ========================
