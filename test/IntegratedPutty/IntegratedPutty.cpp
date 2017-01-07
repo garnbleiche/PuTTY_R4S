@@ -8,9 +8,9 @@ struct PINFO {
 } process_info;
 
 // test ssh server
-wchar_t user[] = L"ctapmex";
-wchar_t password[] = L"39oerz2005";
-wchar_t ip[] = L"194.67.194.4";
+wchar_t user[] = L"guest";
+wchar_t password[] = L"guest";
+wchar_t ip[] = L"192.168.0.5";
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
