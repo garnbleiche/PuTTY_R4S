@@ -165,7 +165,7 @@ int cmdline_process_param(char *p, char *value, int need_save, Conf *conf)
 
     if (!stricmp(p, "-hwndparent")) {
 	RETURN(2);
-	hwnd_parent = atoi(value);
+	hwnd_parent = (HWND)atoi(value);
 	return 2;
     }
     if (!strcmp(p, "-load")) {

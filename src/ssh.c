@@ -1165,7 +1165,7 @@ void connection_fatal_internal(Ssh ssh, char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    const char *stuff;
+    char *stuff;
     stuff = dupvprintf(fmt, args);
     c_write_str(ssh, "\r\n*** Fatal Error ***");
     c_write_str(ssh, stuff);

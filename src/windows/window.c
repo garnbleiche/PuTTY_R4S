@@ -82,6 +82,11 @@
 #define VK_PACKET 0xE7
 #endif
 
+#define WM_USER_CLOSE_SESSION WM_USER + 1
+#define CLOSE_OK 0
+#define CLOSE_FATAL 1
+
+
 static Mouse_Button translate_button(Mouse_Button button);
 static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 static int TranslateKey(UINT message, WPARAM wParam, LPARAM lParam,
@@ -1176,6 +1181,9 @@ void connection_fatal(void *frontend, char *fmt, ...)
 	MessageBox(hwnd, stuff, morestuff, MB_ICONERROR | MB_OK);
 	sfree(stuff);
     }
+    else {
+	SendMessage(hwnd_parent, WM_USER_CLOSE_SESSION, 0, CLOSE_FATAL);
+    }
 
     if (conf_get_int(conf, CONF_close_on_exit) == FORCE_ON)
 	PostQuitMessage(1);
@@ -2063,6 +2071,7 @@ void notify_remote_exit(void *fe)
     if (!session_closed &&
         (exitcode = back->exitcode(backhandle)) >= 0) {
 	close_on_exit = conf_get_int(conf, CONF_close_on_exit);
+	if (hwnd_parent !=0 ) SendMessage(hwnd_parent, WM_USER_CLOSE_SESSION, 0, CLOSE_OK);
 	/* Abnormal exits will already have set session_closed and taken
 	 * appropriate action. */
 	if (close_on_exit == FORCE_ON ||

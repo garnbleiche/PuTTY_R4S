@@ -12,6 +12,10 @@ wchar_t user[] = L"guest";
 wchar_t password[] = L"guest";
 wchar_t ip[] = L"192.168.0.5";
 
+#define WM_USER_CLOSE_SESSION WM_USER + 1
+#define CLOSE_OK 0
+#define CLOSE_FATAL 1
+
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR nCmdLine, int nCmdShow)
@@ -89,6 +93,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       break;
     case WM_SIZE:
       resizePutty();
+      break;
+    case WM_USER_CLOSE_SESSION:
+      if (lParam == CLOSE_OK) {
+        SetWindowText(process_info.main_window, L"current session closed");
+      } else {
+        SetWindowText(process_info.main_window, L"current session fatal closed");
+      }
       break;
   }
   return DefWindowProc(hwnd, uMsg, wParam, lParam);
