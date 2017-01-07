@@ -163,13 +163,11 @@ int cmdline_process_param(char *p, char *value, int need_save, Conf *conf)
 {
     int ret = 0;
 
-#ifdef PUTTYR4S
     if (!stricmp(p, "-hwndparent")) {
 	RETURN(2);
 	hwnd_parent = atoi(value);
 	return 2;
     }
-#endif // PUTTYR4S
     if (!strcmp(p, "-load")) {
 	RETURN(2);
 	/* This parameter must be processed immediately rather than being

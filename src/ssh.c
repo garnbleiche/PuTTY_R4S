@@ -963,11 +963,9 @@ static void bomb_out(Ssh ssh, char *text)
 {
     ssh_do_close(ssh, FALSE);
     logevent(text);
-#ifdef PUTTYR4S
     if (hwnd_parent != 0) {
 	connection_fatal_internal(ssh, "\r\n%s", text);
     }
-#endif // PUTTYR4S
     connection_fatal(ssh->frontend, "%s", text);
     sfree(text);
 }
@@ -3436,11 +3434,9 @@ static int ssh_closing(Plug plug, const char *error_msg, int error_code,
     if (error_msg)
 	logevent(error_msg);
     if (!ssh->close_expected || !ssh->clean_exit) {
-#ifdef PUTTYR4S
 	if (hwnd_parent != 0) {
 	    connection_fatal_internal(ssh, "\r\n%s", error_msg);
 	}
-#endif // PUTTYR4S
 	connection_fatal(ssh->frontend, "%s", error_msg);
     }
     return 0;

@@ -506,10 +506,8 @@ GLOBAL int loaded_session;
  */
 GLOBAL char *cmdline_session_name;
 
-#ifdef PUTTYR4S
 GLOBAL int hwnd_parent;
-#define IsZoomed(hWnd) TRUE
-#endif // PUTTYR4S
+#define IsZoomed(hWnd)  hwnd_parent != 0 ? TRUE : IsZoomed(hWnd)
 
 struct RSAKey;			       /* be a little careful of scope */
 

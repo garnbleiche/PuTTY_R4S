@@ -215,10 +215,8 @@ static int compose_state = 0;
 
 static UINT wm_mousewheel = WM_MOUSEWHEEL;
 
-#ifdef PUTTYR4S
 HWND hwnd_parent_main = NULL;
 HWND hwnd_last_active = NULL;
-#endif // PUTTYR4S
 
 
 #define IS_HIGH_VARSEL(wch1, wch2) \
@@ -350,9 +348,7 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
 
     hinst = inst;
     hwnd = NULL;
-#ifdef PUTTYR4S
     term = NULL; // Make sure that term is initialized to NULL before the window is created so that we can check for it later
-#endif // PUTTYR4S
 
     flags = FLAG_VERBOSE | FLAG_INTERACTIVE;
 
@@ -735,13 +731,12 @@ int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev, LPSTR cmdline, int show)
                                winmode, CW_USEDEFAULT, CW_USEDEFAULT,
                                guess_width, guess_height,
                                NULL, NULL, inst, NULL);
-#ifdef PUTTYR4S
+
 	if (hwnd_parent != 0)
 	{
 	    SetParent(hwnd, (HWND)hwnd_parent); // Focus doesn't work correctly if this is passed into CreateWindow, so set it separately.
 	    hwnd_parent_main = GetAncestor((HWND)hwnd_parent, GA_ROOTOWNER); // the top level ancestor of hwnd_parent
 	}
-#endif // PUTTYR4S
 
         sfree(uappname);
     }
@@ -1170,21 +1165,17 @@ void set_raw_mouse_mode(void *frontend, int activate)
  */
 void connection_fatal(void *frontend, char *fmt, ...)
 {
-#ifdef PUTTYR4S
     if (hwnd_parent == 0) {
-#endif // PUTTYR4S
-    va_list ap;
-    char *stuff, morestuff[100];
+	va_list ap;
+	char *stuff, morestuff[100];
 
-    va_start(ap, fmt);
-    stuff = dupvprintf(fmt, ap);
-    va_end(ap);
-    sprintf(morestuff, "%.70s Fatal Error", appname);
-    MessageBox(hwnd, stuff, morestuff, MB_ICONERROR | MB_OK);
-    sfree(stuff);
-#ifdef PUTTYR4S
+	va_start(ap, fmt);
+	stuff = dupvprintf(fmt, ap);
+	va_end(ap);
+	sprintf(morestuff, "%.70s Fatal Error", appname);
+	MessageBox(hwnd, stuff, morestuff, MB_ICONERROR | MB_OK);
+	sfree(stuff);
     }
-#endif // PUTTYR4S
 
     if (conf_get_int(conf, CONF_close_on_exit) == FORCE_ON)
 	PostQuitMessage(1);
@@ -2338,66 +2329,63 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 
 		/* Enable or disable the scroll bar, etc */
 		{
-#ifdef PUTTYR4S
 		    if (hwnd_parent == 0) {
-#endif // PUTTYR4S
-		    LONG nflg, flag = GetWindowLongPtr(hwnd, GWL_STYLE);
-		    LONG nexflag, exflag =
-			GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+			LONG nflg, flag = GetWindowLongPtr(hwnd, GWL_STYLE);
+			LONG nexflag, exflag =
+			    GetWindowLongPtr(hwnd, GWL_EXSTYLE);
 
-		    nexflag = exflag;
-		    if (conf_get_int(conf, CONF_alwaysontop) !=
-			conf_get_int(prev_conf, CONF_alwaysontop)) {
-			if (conf_get_int(conf, CONF_alwaysontop)) {
-			    nexflag |= WS_EX_TOPMOST;
-			    SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,
-					 SWP_NOMOVE | SWP_NOSIZE);
-			} else {
-			    nexflag &= ~(WS_EX_TOPMOST);
-			    SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0,
-					 SWP_NOMOVE | SWP_NOSIZE);
+			nexflag = exflag;
+			if (conf_get_int(conf, CONF_alwaysontop) !=
+			    conf_get_int(prev_conf, CONF_alwaysontop)) {
+			    if (conf_get_int(conf, CONF_alwaysontop)) {
+				nexflag |= WS_EX_TOPMOST;
+				SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,
+				    SWP_NOMOVE | SWP_NOSIZE);
+			    }
+			    else {
+				nexflag &= ~(WS_EX_TOPMOST);
+				SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0,
+				    SWP_NOMOVE | SWP_NOSIZE);
+			    }
+			}
+			if (conf_get_int(conf, CONF_sunken_edge))
+			    nexflag |= WS_EX_CLIENTEDGE;
+			else
+			    nexflag &= ~(WS_EX_CLIENTEDGE);
+
+			nflg = flag;
+			if (conf_get_int(conf, is_full_screen() ?
+			    CONF_scrollbar_in_fullscreen :
+			    CONF_scrollbar))
+			    nflg |= WS_VSCROLL;
+			else
+			    nflg &= ~WS_VSCROLL;
+
+			if (resize_action == RESIZE_DISABLED ||
+			    is_full_screen())
+			    nflg &= ~WS_THICKFRAME;
+			else
+			    nflg |= WS_THICKFRAME;
+
+			if (resize_action == RESIZE_DISABLED)
+			    nflg &= ~WS_MAXIMIZEBOX;
+			else
+			    nflg |= WS_MAXIMIZEBOX;
+
+			if (nflg != flag || nexflag != exflag) {
+			    if (nflg != flag)
+				SetWindowLongPtr(hwnd, GWL_STYLE, nflg);
+			    if (nexflag != exflag)
+				SetWindowLongPtr(hwnd, GWL_EXSTYLE, nexflag);
+
+			    SetWindowPos(hwnd, NULL, 0, 0, 0, 0,
+				SWP_NOACTIVATE | SWP_NOCOPYBITS |
+				SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+				SWP_FRAMECHANGED);
+
+			    init_lvl = 2;
 			}
 		    }
-		    if (conf_get_int(conf, CONF_sunken_edge))
-			nexflag |= WS_EX_CLIENTEDGE;
-		    else
-			nexflag &= ~(WS_EX_CLIENTEDGE);
-
-		    nflg = flag;
-		    if (conf_get_int(conf, is_full_screen() ?
-				     CONF_scrollbar_in_fullscreen :
-				     CONF_scrollbar))
-			nflg |= WS_VSCROLL;
-		    else
-			nflg &= ~WS_VSCROLL;
-
-		    if (resize_action == RESIZE_DISABLED ||
-                        is_full_screen())
-			nflg &= ~WS_THICKFRAME;
-		    else
-			nflg |= WS_THICKFRAME;
-
-		    if (resize_action == RESIZE_DISABLED)
-			nflg &= ~WS_MAXIMIZEBOX;
-		    else
-			nflg |= WS_MAXIMIZEBOX;
-
-		    if (nflg != flag || nexflag != exflag) {
-			if (nflg != flag)
-			    SetWindowLongPtr(hwnd, GWL_STYLE, nflg);
-			if (nexflag != exflag)
-			    SetWindowLongPtr(hwnd, GWL_EXSTYLE, nexflag);
-
-			SetWindowPos(hwnd, NULL, 0, 0, 0, 0,
-				     SWP_NOACTIVATE | SWP_NOCOPYBITS |
-				     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
-				     SWP_FRAMECHANGED);
-
-			init_lvl = 2;
-		    }
-#ifdef PUTTYR4S
-		}
-#endif // PUTTYR4S
 		}
 
 		/* Oops */
@@ -2639,14 +2627,12 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 		wp = wParam; lp = lParam;
 		last_mousemove = WM_MOUSEMOVE;
 	    }
-#ifdef PUTTYR4S
 	    {
 		GUITHREADINFO thread_info;
 		thread_info.cbSize = sizeof(thread_info);
 		GetGUIThreadInfo(NULL, &thread_info);
 		hwnd_last_active = thread_info.hwndActive;
 	    }
-#endif // PUTTYR4S
 	}
 	/*
 	 * Add the mouse position and message time to the random
@@ -2803,15 +2789,11 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
             queue_toplevel_callback(wm_netevent_callback, params);
         }
 	return 0;
-#ifdef PUTTYR4S
       case WM_MOUSEACTIVATE:
 	if (hwnd_parent != 0 && hwnd_last_active != hwnd_parent_main)
 	    BringWindowToTop(hwnd_parent_main);
-#endif // PUTTYR4S
       case WM_SETFOCUS:
-#ifdef PUTTYR4S
 	if (!term) break; // We might get here before term_init is called
-#endif // PUTTYR4S
 	term_set_focus(term, TRUE);
 	CreateCaret(hwnd, caretbm, font_width, font_height);
 	ShowCaret(hwnd);
@@ -2944,20 +2926,16 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT message,
 	fullscr_on_max = TRUE;
 	break;
       case WM_MOVE:
-#ifdef PUTTYR4S
 	if (!term) break; // We might get here before term_init is called
-#endif // PUTTYR4S
 	sys_cursor_update();
 	break;
       case WM_SIZE:
-#ifdef PUTTYR4S
 	if (!term) break; // We might get here before term_init is called
 	if (hwnd_parent != 0)
 	{
 	    wParam = SIZE_MAXIMIZED;
 	    was_zoomed = 0;
 	}
-#endif // PUTTYR4S
 	resize_action = conf_get_int(conf, CONF_resize_action);
 #ifdef RDB_DEBUG_PATCH
 	debug((27, "WM_SIZE %s (%d,%d)",
@@ -5679,9 +5657,7 @@ void refresh_window(void *frontend)
  */
 void set_zoomed(void *frontend, int zoomed)
 {
-#ifdef PUTTYR4S
     if (hwnd_parent != 0) return;
-#endif // PUTTYR4S
     if (IsZoomed(hwnd)) {
         if (!zoomed)
 	    ShowWindow(hwnd, SW_RESTORE);
@@ -5776,9 +5752,7 @@ static void make_full_screen()
     DWORD style;
 	RECT ss;
 
-#ifdef PUTTYR4S
     if (hwnd_parent != 0) return;
-#endif // PUTTYR4S
 
     assert(IsZoomed(hwnd));
 
@@ -5819,9 +5793,7 @@ static void make_full_screen()
 static void clear_full_screen()
 {
     DWORD oldstyle, style;
-#ifdef PUTTYR4S
     if (hwnd_parent != 0) return;
-#endif // PUTTYR4S
 
     /* Reinstate the window furniture. */
     style = oldstyle = GetWindowLongPtr(hwnd, GWL_STYLE);
@@ -5854,9 +5826,7 @@ static void clear_full_screen()
  */
 static void flip_full_screen()
 {
-#ifdef PUTTYR4S
     if (hwnd_parent != 0) return;
-#endif // PUTTYR4S
     if (is_full_screen()) {
 	ShowWindow(hwnd, SW_RESTORE);
     } else if (IsZoomed(hwnd)) {
