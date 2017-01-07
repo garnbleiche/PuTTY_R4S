@@ -963,6 +963,11 @@ static void bomb_out(Ssh ssh, char *text)
 {
     ssh_do_close(ssh, FALSE);
     logevent(text);
+#ifdef PUTTYR4S
+    if (hwnd_parent != 0) {
+	connection_fatal_internal(ssh, "\r\n%s", text);
+    }
+#endif // PUTTYR4S
     connection_fatal(ssh->frontend, "%s", text);
     sfree(text);
 }
@@ -1154,6 +1159,20 @@ static void c_write_untrusted(Ssh ssh, const char *buf, int len)
 static void c_write_str(Ssh ssh, const char *buf)
 {
     c_write(ssh, buf, strlen(buf));
+}
+
+/* Write fatal message on terminal 
+*/
+void connection_fatal_internal(Ssh ssh, char *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    const char *stuff;
+    stuff = dupvprintf(fmt, args);
+    c_write_str(ssh, "\r\n*** Fatal Error ***");
+    c_write_str(ssh, stuff);
+    sfree(stuff);
+    va_end(args);
 }
 
 static void ssh_free_packet(struct Packet *pkt)
@@ -3416,8 +3435,14 @@ static int ssh_closing(Plug plug, const char *error_msg, int error_code,
 
     if (error_msg)
 	logevent(error_msg);
-    if (!ssh->close_expected || !ssh->clean_exit)
+    if (!ssh->close_expected || !ssh->clean_exit) {
+#ifdef PUTTYR4S
+	if (hwnd_parent != 0) {
+	    connection_fatal_internal(ssh, "\r\n%s", error_msg);
+	}
+#endif // PUTTYR4S
 	connection_fatal(ssh->frontend, "%s", error_msg);
+    }
     return 0;
 }
 
@@ -10397,7 +10422,7 @@ static void ssh2_msg_disconnect(Ssh ssh, struct Packet *pktin)
     buf = dupprintf("Disconnection message text: %.*s",
 		    msglen, NULLTOEMPTY(msg));
     logevent(buf);
-    bombout(("Server sent disconnect message\ntype %d (%s):\n\"%.*s\"",
+    bombout(("Server sent disconnect message\r\ntype %d (%s):\r\n\"%.*s\"",
 	     reason,
 	     (reason > 0 && reason < lenof(ssh2_disconnect_reasons)) ?
 	     ssh2_disconnect_reasons[reason] : "unknown",

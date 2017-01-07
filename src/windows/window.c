@@ -1170,6 +1170,9 @@ void set_raw_mouse_mode(void *frontend, int activate)
  */
 void connection_fatal(void *frontend, char *fmt, ...)
 {
+#ifdef PUTTYR4S
+    if (hwnd_parent == 0) {
+#endif // PUTTYR4S
     va_list ap;
     char *stuff, morestuff[100];
 
@@ -1179,6 +1182,9 @@ void connection_fatal(void *frontend, char *fmt, ...)
     sprintf(morestuff, "%.70s Fatal Error", appname);
     MessageBox(hwnd, stuff, morestuff, MB_ICONERROR | MB_OK);
     sfree(stuff);
+#ifdef PUTTYR4S
+    }
+#endif // PUTTYR4S
 
     if (conf_get_int(conf, CONF_close_on_exit) == FORCE_ON)
 	PostQuitMessage(1);

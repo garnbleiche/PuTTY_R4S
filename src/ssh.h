@@ -10,6 +10,7 @@
 struct ssh_channel;
 typedef struct ssh_tag *Ssh;
 
+void connection_fatal_internal(Ssh ssh, char *fmt, ...);
 extern int sshfwd_write(struct ssh_channel *c, char *, int);
 extern void sshfwd_write_eof(struct ssh_channel *c);
 extern void sshfwd_unclean_close(struct ssh_channel *c, const char *err);
