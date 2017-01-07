@@ -1,5 +1,5 @@
 # PuTTY R4S
-A modified version of PuTTY for integration into Remote4Support
+A modified version of PuTTY for integration into [Remote4Support](https://github.com/ctapmex/Remote4Support)
 
 ## New command-line arguments
 * **hwndparent**: the handle of the parent window
